@@ -6,7 +6,6 @@ import React from 'react'
 const Landing = () => {
   return (
     <div className='min-h-screen flex flex-col justify-between bg-black text-white relative'>
-      <Header />
       <HeroSection />
       <HowItWorks />
     </div>

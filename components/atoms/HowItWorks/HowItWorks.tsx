@@ -19,7 +19,7 @@ const steps = [
 const HowItWorks = () => {
   return (
     <div className="relative border-t border-white/10 py-16 px-6 md:px-10">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-6 max-w-6xl mx-auto">
+      <div className="min-w-fit grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-6 max-w-6xl mx-auto">
         {steps.map((step, i) => (
           <div key={step.number} className="relative group">
             <div className="flex items-start gap-4">

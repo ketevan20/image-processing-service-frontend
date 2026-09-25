@@ -1,0 +1,121 @@
+'use client'
+
+import React, { useState } from 'react'
+import { Wand2, Trash2 } from 'lucide-react'
+import { Image } from '@/types/image'
+import Loader from '@/components/atoms/Loader/Loader'
+import ConfirmModal from '@/components/atoms/ConfirmModal/ConfirmModal'
+
+const accents = [
+  { grad: 'from-rose-500/15 via-pink-500/5', badge: 'bg-rose-400/15 text-rose-300 border-rose-400/30', ring: 'hover:border-rose-400/50' },
+  { grad: 'from-sky-500/15 via-blue-500/5', badge: 'bg-sky-400/15 text-sky-300 border-sky-400/30', ring: 'hover:border-sky-400/50' },
+  { grad: 'from-emerald-500/15 via-green-500/5', badge: 'bg-emerald-400/15 text-emerald-300 border-emerald-400/30', ring: 'hover:border-emerald-400/50' },
+  { grad: 'from-amber-500/15 via-orange-500/5', badge: 'bg-amber-400/15 text-amber-300 border-amber-400/30', ring: 'hover:border-amber-400/50' },
+]
+
+type GallerySectionProps = {
+  images: Image[];
+  filter: string;
+  loading: boolean;
+  deleteImage: (id: string) => void;
+}
+
+const GallerySection = ({ images, filter, loading, deleteImage }: GallerySectionProps) => {
+  const [pendingDelete, setPendingDelete] = useState<Image | null>(null)
+  const [deleting, setDeleting] = useState(false)
+
+  const handleConfirmDelete = async () => {
+    if (!pendingDelete) return
+    setDeleting(true)
+    try {
+      await deleteImage(pendingDelete._id)
+      setPendingDelete(null)
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  if (images.length === 0) {
+    return (
+      <div className="flex-1 border border-white/10 h-64 flex items-center justify-center">
+        <p className="text-xs uppercase tracking-[0.2em] text-gray-600">
+          {filter === 'transformed' ? 'No transformed images yet' : "Nothing here yet — upload your first image"}
+        </p>
+      </div>
+    )
+  }
+
+  if (loading) {
+    return (
+      <Loader />
+    )
+  }
+
+  return (
+    <>
+      <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        {images.map((img, i) => {
+          const accent = accents[i % accents.length]
+
+          return (
+            <div
+              key={img._id}
+              className={`h-fit group relative border border-white/10 ${accent.ring} transition-colors`}
+            >
+              <div className={`relative aspect-square bg-linear-to-br ${accent.grad} to-transparent`}>
+                <img
+                  src={img.url}
+                  alt={img.originalName}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
+              <div className="absolute inset-0 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 bg-black/50 transition-opacity">
+                <button className="w-8 h-8 flex items-center justify-center border border-white/20 text-gray-300 hover:text-white hover:border-white/50">
+                  <Wand2 size={13} strokeWidth={1.5} />
+                </button>
+
+                <button
+                  onClick={() => setPendingDelete(img)}
+                  className="w-8 h-8 flex items-center justify-center border border-white/20 text-gray-300 hover:text-rose-400 hover:border-rose-400/60"
+                >
+                  <Trash2 size={13} strokeWidth={1.5} />
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between px-3 py-2.5">
+                <span className="text-xs text-gray-300 truncate">
+                  {img.originalName}
+                </span>
+
+                <span className="text-[10px] uppercase tracking-[0.15em] text-gray-600 shrink-0 ml-2">
+                  {img.mimeType.split('/')[1]}
+                </span>
+              </div>
+
+              {img.parentImage !== null && (
+                <span
+                  className={`absolute top-2 left-2 text-[9px] uppercase tracking-[0.15em] px-1.5 py-0.5 border ${accent.badge}`}
+                >
+                  Transformed
+                </span>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      <ConfirmModal
+        open={pendingDelete !== null}
+        title={`Delete "${pendingDelete?.originalName}"?`}
+        description="This can't be undone. Any transformed versions derived from this image may be affected."
+        confirmLabel="Delete"
+        loading={deleting}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setPendingDelete(null)}
+      />
+    </>
+  )
+}
+
+export default GallerySection
