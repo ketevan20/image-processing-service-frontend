@@ -5,6 +5,7 @@ import { Wand2, Trash2 } from 'lucide-react'
 import { Image } from '@/types/image'
 import Loader from '@/components/atoms/Loader/Loader'
 import ConfirmModal from '@/components/atoms/ConfirmModal/ConfirmModal'
+import Link from 'next/link'
 
 const accents = [
   { grad: 'from-rose-500/15 via-pink-500/5', badge: 'bg-rose-400/15 text-rose-300 border-rose-400/30', ring: 'hover:border-rose-400/50' },
@@ -18,22 +19,11 @@ type GallerySectionProps = {
   filter: string;
   loading: boolean;
   deleteImage: (id: string) => void;
+  deletingId: string | null
 }
 
-const GallerySection = ({ images, filter, loading, deleteImage }: GallerySectionProps) => {
+const GallerySection = ({ images, filter, loading, deleteImage, deletingId }: GallerySectionProps) => {
   const [pendingDelete, setPendingDelete] = useState<Image | null>(null)
-  const [deleting, setDeleting] = useState(false)
-
-  const handleConfirmDelete = async () => {
-    if (!pendingDelete) return
-    setDeleting(true)
-    try {
-      await deleteImage(pendingDelete._id)
-      setPendingDelete(null)
-    } finally {
-      setDeleting(false)
-    }
-  }
 
   if (images.length === 0) {
     return (
@@ -71,9 +61,12 @@ const GallerySection = ({ images, filter, loading, deleteImage }: GallerySection
               </div>
 
               <div className="absolute inset-0 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 bg-black/50 transition-opacity">
-                <button className="w-8 h-8 flex items-center justify-center border border-white/20 text-gray-300 hover:text-white hover:border-white/50">
+                <Link
+                  href={`/studio/${img._id}`}
+                  className="w-8 h-8 flex items-center justify-center border border-white/20 text-gray-300 hover:text-white hover:border-white/50"
+                >
                   <Wand2 size={13} strokeWidth={1.5} />
-                </button>
+                </Link>
 
                 <button
                   onClick={() => setPendingDelete(img)}
@@ -110,8 +103,12 @@ const GallerySection = ({ images, filter, loading, deleteImage }: GallerySection
         title={`Delete "${pendingDelete?.originalName}"?`}
         description="This can't be undone. Any transformed versions derived from this image may be affected."
         confirmLabel="Delete"
-        loading={deleting}
-        onConfirm={handleConfirmDelete}
+        loading={pendingDelete?._id === deletingId}
+        onConfirm={async () => {
+          if (!pendingDelete) return
+          await deleteImage(pendingDelete._id)
+          setPendingDelete(null)
+        }}
         onCancel={() => setPendingDelete(null)}
       />
     </>

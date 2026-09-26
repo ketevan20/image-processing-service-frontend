@@ -2,7 +2,7 @@ import React from 'react'
 
 const layout = ({ children }: LayoutProps<"/">) => {
     return (
-        <div className="relative min-h-screen w-full flex text-white overflow-hidden">
+        <div className="relative min-h-[calc(100vh-64px)] w-full flex text-white overflow-hidden">
             <img
                 src="/auth-visual.jpg"
                 alt=""

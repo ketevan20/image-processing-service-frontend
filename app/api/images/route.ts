@@ -44,3 +44,42 @@ export async function GET(request: Request) {
         )
     }
 }
+
+export async function POST(request: Request) {
+    const token = (await cookies()).get('token')?.value
+
+    if (!token) {
+        return NextResponse.json(
+            { message: 'Unauthorized' },
+            { status: 401 }
+        )
+    }
+
+    try {
+        const formData = await request.formData();
+
+        const res = await fetch(`${process.env.BACKEND_URL}/images`, {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+            body: formData,
+        });
+
+        const data = await res.json()
+
+        if (!res.ok) {
+            return NextResponse.json(
+                { message: data.message || 'Something went wrong' },
+                { status: res.status }
+            )
+        }
+
+        return NextResponse.json(data)
+    } catch (err) {
+        return NextResponse.json(
+            { message: 'Server error' },
+            { status: 500 }
+        )
+    }
+}

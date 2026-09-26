@@ -1,3 +1,14 @@
+export interface RateLimitQuota {
+  limit: number
+  remaining: number
+  retryAfter?: number | null
+}
+
+export interface TransformResponse {
+  data: Image 
+  quota: RateLimitQuota | null
+}
+
 export interface Image {
   _id: string
   key: string

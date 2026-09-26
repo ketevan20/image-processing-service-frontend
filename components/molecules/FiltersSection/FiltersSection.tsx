@@ -25,7 +25,7 @@ const FiltersSection = ({ setFilter, filter, total }: FiltersSectionProps) => {
             key={label}
             className={`px-4 py-2 text-xs uppercase tracking-[0.2em] transition-colors ${filter === label ? tabColors[i] : 'text-gray-400 hover:text-white'
               }`}
-            onClick={() => {setFilter(label); }}
+            onClick={() => {setFilter(label)}}
           >
             {label}
           </button>

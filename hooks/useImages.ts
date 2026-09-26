@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { deleteImageById, getImages, getOriginalImages, getTransformedImages, } from '@/lib/api/images'
+import { deleteImageById, getImages, getOriginalImages, getTransformedImages, uploadImage, } from '@/lib/api/images'
 import type { Image, ImagesResponse } from '@/types/image'
 
 export type ImageFilter = 'all' | 'originals' | 'transformed'
@@ -15,6 +15,7 @@ export function useImages() {
   const [totalPages, setTotalPages] = useState(0)
 
   const [loading, setLoading] = useState(true)
+  const [deletingId, setDeletingId] = useState<string | null>(null) 
   const [error, setError] = useState<string | null>(null)
 
 
@@ -58,10 +59,29 @@ export function useImages() {
 
   const deleteImage = async (id: string) => {
     try {
-      setLoading(true)
+      setDeletingId(id)   
       setError(null)
 
       await deleteImageById(id)
+
+      await fetchImages() 
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : 'Failed to delete image'
+      )
+    } finally {
+      setDeletingId(null) 
+    }
+  }
+
+  const addImage = async (image: File) => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      await uploadImage(image)
 
       await fetchImages()
     } catch (error) {
@@ -83,6 +103,7 @@ export function useImages() {
   return {
     images,
     loading,
+    deletingId,   
     error,
 
     filter,
@@ -95,6 +116,8 @@ export function useImages() {
     total,
     totalPages,
 
-    deleteImage
+    deleteImage,
+
+    addImage
   }
 }
