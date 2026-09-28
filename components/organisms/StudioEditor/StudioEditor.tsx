@@ -11,8 +11,7 @@ const StudioEditor = () => {
     const { imageId } = useParams<{ imageId: string }>()
 
     const {
-        image, loading, error,
-        canGoBefore, canGoAfter, goBefore, goAfter,
+        image, transformed, loading, error,
         activeStep, setActiveStep,
         pending, updatePending, hasPendingChanges,
         applying, applyError, applyTransform,
@@ -22,9 +21,9 @@ const StudioEditor = () => {
     if (error) return <div>error</div>
 
     return (
-        <div className='text-white flex flex-col lg:flex-row h-[calc(100vh-64px)] overflow-y-auto lg:overflow-hidden'>
+        <div className='text-white flex flex-col lg:flex-row md:h-[calc(100vh-64px)] overflow-y-auto lg:overflow-hidden'>
             <TrnasformationsList active={activeStep} setActive={setActiveStep} pending={pending} />
-            <EditingOverview image={image} canGoBefore={canGoBefore} canGoAfter={canGoAfter} onBefore={goBefore} onAfter={goAfter} pending={pending} />
+            <EditingOverview image={image} transformed={transformed} pending={pending} />
             <TransformationPanel
                 active={activeStep}
                 pending={pending}

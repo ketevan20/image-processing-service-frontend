@@ -58,9 +58,25 @@ const GallerySection = ({ images, filter, loading, deleteImage, deletingId }: Ga
                   alt={img.originalName}
                   className="w-full h-full object-cover"
                 />
+
+                <div className="flex md:hidden absolute bottom-2 right-2 gap-1.5">
+                  <Link
+                    href={`/studio/${img._id}`}
+                    className="w-7 h-7 flex items-center justify-center bg-black/60 border border-white/20 text-gray-300 active:text-white active:border-white/50"
+                  >
+                    <Wand2 size={12} strokeWidth={1.5} />
+                  </Link>
+
+                  <button
+                    onClick={() => setPendingDelete(img)}
+                    className="w-7 h-7 flex items-center justify-center bg-black/60 border border-white/20 text-gray-300 active:text-rose-400 active:border-rose-400/60"
+                  >
+                    <Trash2 size={12} strokeWidth={1.5} />
+                  </button>
+                </div>
               </div>
 
-              <div className="absolute inset-0 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 bg-black/50 transition-opacity">
+              <div className="hidden absolute inset-0 md:flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 bg-black/50 transition-opacity">
                 <Link
                   href={`/studio/${img._id}`}
                   className="w-8 h-8 flex items-center justify-center border border-white/20 text-gray-300 hover:text-white hover:border-white/50"

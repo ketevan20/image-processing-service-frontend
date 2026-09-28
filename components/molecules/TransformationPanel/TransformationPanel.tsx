@@ -219,14 +219,19 @@ const TransformationPanel = ({
           if (field === 'fontSize') {
             const value = Number(raw)
             if (Number.isNaN(value)) return
-            onChange('watermark', { text: watermark?.text ?? '', position: watermark?.position, fontSize: value })
+            // Don't create a watermark payload off fontSize alone — text is required.
+            if (!watermark?.text) return
+            onChange('watermark', { text: watermark.text, position: watermark?.position, fontSize: value })
             return
           }
           onChange('watermark', { text: raw, position: watermark?.position, fontSize: watermark?.fontSize })
         }
-        const setPosition = (pos: WatermarkPosition) =>
-          onChange('watermark', { text: watermark?.text ?? '', position: pos, fontSize: watermark?.fontSize })
-
+        const setPosition = (pos: WatermarkPosition) => {
+          // Same guard — picking a position with no text yet shouldn't queue anything.
+          if (!watermark?.text) return
+          onChange('watermark', { text: watermark.text, position: pos, fontSize: watermark?.fontSize })
+        }
+        
         return (
           <div className='flex flex-col gap-4 px-2 py-1'>
             <div>
@@ -328,7 +333,7 @@ const TransformationPanel = ({
     : active.key as keyof TransformPayload
 
   return (
-    <div className='w-full lg:w-80 flex flex-col justify-between shrink-0 border-t lg:border-t-0 lg:border-l border-white/10 py-2 px-4 sm:px-6 lg:px-10'>
+    <div className='w-full lg:w-80 shrink-0 flex flex-col justify-between border-t lg:border-t-0 lg:border-l border-white/10 py-2 px-4 sm:px-6 lg:px-10'>
       <div>
         <div className='flex items-center justify-between px-2 py-3'>
           <div className='flex items-center gap-2'>

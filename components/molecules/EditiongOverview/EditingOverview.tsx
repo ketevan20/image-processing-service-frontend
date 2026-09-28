@@ -2,51 +2,54 @@ import { transformationSteps } from '@/hooks/useTransform'
 import { isStepSet } from '@/lib/api/isStepSet'
 import { Image } from '@/types/image'
 import { TransformPayload } from '@/types/transform'
-import { ChevronLeft, ChevronRight, Download } from 'lucide-react'
+import { Download } from 'lucide-react'
 import React from 'react'
 
 type EditingOverviewProps = {
     image: Image | null
-    canGoBefore: boolean
-    canGoAfter: boolean
-    onBefore: () => void
-    onAfter: () => void
+    transformed: Image | null
     pending: TransformPayload
 }
 
-const EditingOverview = ({ image, canGoBefore, canGoAfter, onBefore, onAfter, pending }: EditingOverviewProps) => {
+const EditingOverview = ({ image, transformed, pending }: EditingOverviewProps) => {
     const activeSteps = transformationSteps.filter((step) => isStepSet(step.key, pending))
 
-    const handleDownload = async () => {
-        if (!image) return
-
+    const download = async (img: Image) => {
         try {
-            const response = await fetch(image.url)
-
-            if (!response.ok) {
-                throw new Error(`Download failed: ${response.status}`)
-            }
-
+            const response = await fetch(img.url)
+            if (!response.ok) throw new Error(`Download failed: ${response.status}`)
             const blob = await response.blob()
             const blobUrl = URL.createObjectURL(blob)
-
             const a = document.createElement('a')
             a.href = blobUrl
-            a.download = image.originalName || 'image'
+            a.download = img.originalName || 'image'
             document.body.appendChild(a)
             a.click()
             a.remove()
-
             URL.revokeObjectURL(blobUrl)
         } catch (error) {
             console.error('Download failed:', error)
         }
     }
 
-    return (
-        <div className='flex-1 max-h-full flex flex-col min-w-0'>
+    const Slot = ({ label, img }: { label: string; img: Image | null }) => (
+        <div className='flex-1 min-w-0 min-h-0 flex flex-col'>
+            <div className='flex items-center justify-between px-3 py-2 shrink-0'>
+                <p className='text-[11px] uppercase tracking-widest text-white/40'>{label}</p>
+                <button
+                    onClick={() => img && download(img)}
+                    disabled={!img}
+                    title='Download'
+                    className='flex items-center justify-center w-7 h-7 border border-white/10 text-white/60 transition-colors hover:bg-white/5 disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed'
+                >
+                    <Download size={12} />
+                </button>
+            </div>
+
+            {/* Fixed height on mobile/tablet (stable regardless of content reflow),
+                vh only kicks in at lg where the layout is overflow-hidden and non-scrolling. */}
             <div
-                className='flex-1 h-[32vh] sm:h-[38vh] lg:h-[45vh] flex items-center justify-center relative overflow-hidden'
+                className='flex-1 h-64 sm:h-72 lg:h-[42vh] flex items-center justify-center relative overflow-hidden shrink-0'
                 style={{
                     backgroundColor: '#0a0a0a',
                     backgroundImage: `
@@ -60,68 +63,48 @@ const EditingOverview = ({ image, canGoBefore, canGoAfter, onBefore, onAfter, pe
                     backgroundPosition: '0 0, 0 0, 0 12px, 12px -12px, -12px 0px',
                 }}
             >
-                {image ? (
+                {img ? (
                     <img
-                        src={image.url}
-                        alt={image.originalName}
-                        className='max-w-[90%] max-h-[85%] sm:max-w-[80%] sm:max-h-[80%] lg:max-w-[70%] lg:max-h-[75%] object-contain shadow-2xl shadow-black/60 border border-white/10'
+                        src={img.url}
+                        alt={img.originalName}
+                        className='max-w-[85%] max-h-[85%] object-contain shadow-2xl shadow-black/60 border border-white/10'
                     />
                 ) : (
-                    <p className='text-white/20 text-sm'>No image loaded</p>
+                    <p className='text-white/20 text-sm p-4'>No changes applied yet</p>
                 )}
             </div>
+        </div>
+    )
 
-            <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-white/10 px-3 sm:px-4 py-3'>
-                <div className='flex items-center gap-2 min-w-0 overflow-hidden order-2 sm:order-1'>
-                    <p className='text-[11px] uppercase tracking-widest text-white/40 shrink-0'>Pipeline</p>
+    return (
+        <div className='flex-1 min-h-0 max-h-full flex flex-col min-w-0'>
+            <div className='flex-1 min-h-0 flex flex-col sm:flex-row divide-y sm:divide-y-0 sm:divide-x divide-white/10 overflow-y-auto sm:overflow-visible'>
+                <Slot label='Original' img={image} />
+                <Slot label='Edited' img={transformed} />
+            </div>
 
-                    <div className='flex items-center gap-1.5 overflow-x-auto scrollbar-none'>
-                        {activeSteps.length === 0 ? (
-                            <span className='text-[11px] text-white/25'>No changes queued</span>
-                        ) : (
-                            activeSteps.map((step) => (
-                                <span
-                                    key={step.key}
-                                    className='flex items-center gap-1.5 px-2 py-1 border text-[11px] shrink-0'
-                                    style={{ borderColor: `${step.color}55`, backgroundColor: `${step.color}1a`, color: step.color }}
-                                >
-                                    <span className='w-1.5 h-1.5 shrink-0' style={{ backgroundColor: step.color }} />
-                                    {step.label}
-                                </span>
-                            ))
-                        )}
-                    </div>
-                </div>
-
-                <div className='flex items-center justify-between sm:justify-start gap-2 shrink-0 order-1 sm:order-2'>
-                    <div className='flex items-center border border-white/10'>
-                        <button
-                            onClick={onBefore}
-                            disabled={!canGoBefore}
-                            className='flex items-center gap-1.5 px-2.5 sm:px-3 py-2 text-xs text-white/70 border-r border-white/10 transition-colors hover:bg-white/5 disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed'
-                        >
-                            <ChevronLeft size={14} />
-                            <span className='hidden xs:inline'>Before</span>
-                        </button>
-                        <button
-                            onClick={onAfter}
-                            disabled={!canGoAfter}
-                            className='flex items-center gap-1.5 px-2.5 sm:px-3 py-2 text-xs text-white/70 transition-colors hover:bg-white/5 disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed'
-                        >
-                            <span className='hidden xs:inline'>After</span>
-                            <ChevronRight size={14} />
-                        </button>
-                    </div>
-
-                    <button
-                        onClick={handleDownload}
-                        disabled={!image}
-                        title='Download image'
-                        className='flex items-center justify-center w-9 h-9 border border-white/10 text-white/70 transition-colors hover:bg-white/5 disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed'
+            <div className='flex items-center gap-2 border-t border-white/10 px-4 py-3 overflow-x-auto scrollbar-none shrink-0'>
+                <p className='text-[11px] uppercase tracking-widest text-white/40 shrink-0'>Pipeline</p>
+                {activeSteps.length === 0 ? (
+                    <span
+                        className='text-white/40 flex items-center gap-1.5  py-1 border border-transparent text-[11px] shrink-0'
                     >
-                        <Download size={14} />
-                    </button>
-                </div>
+                        <span className='w-1.5 h-1.5 shrink-0'/>
+                        No Changes quoued
+                    </span>
+
+                ) : (
+                    activeSteps.map((step) => (
+                        <span
+                            key={step.key}
+                            className='flex items-center gap-1.5 px-2 py-1 border text-[11px] shrink-0'
+                            style={{ borderColor: `${step.color}55`, backgroundColor: `${step.color}1a`, color: step.color }}
+                        >
+                            <span className='w-1.5 h-1.5 shrink-0' style={{ backgroundColor: step.color }} />
+                            {step.label}
+                        </span>
+                    ))
+                )}
             </div>
         </div>
     )

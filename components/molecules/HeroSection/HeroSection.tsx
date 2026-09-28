@@ -1,6 +1,10 @@
+'use client'
+import { useRouter } from 'next/navigation'
 import React from 'react'
 
 const HeroSection = () => {
+  const router = useRouter()
+
   return (
     <div className='flex-1 w-full h-full p-6 md:p-10 flex flex-col md:flex-row justify-between overflow-hidden relative gap-20 md:gap-0'>
       <div className="relative flex-1 flex flex-col justify-center gap-4 md:gap-6">
@@ -26,7 +30,9 @@ const HeroSection = () => {
           re-encode it — then fetch any version from a single address.
         </p>
 
-        <button className="group relative self-start mt-4 inline-flex items-center gap-3 px-5 md:px-7 py-3 md:py-3.5 text-xs uppercase tracking-[0.2em] border border-purple-400/60 hover:bg-purple-400 hover:text-black transition-colors duration-300">
+        <button
+          onClick={() => router.push('/register')}
+          className="group relative self-start mt-4 inline-flex items-center gap-3 px-5 md:px-7 py-3 md:py-3.5 text-xs uppercase tracking-[0.2em] border border-purple-400/60 hover:bg-purple-400 hover:text-black transition-colors duration-300">
           Begin metamorphosis
           <span className="transition-transform duration-300 group-hover:translate-x-1">
             →

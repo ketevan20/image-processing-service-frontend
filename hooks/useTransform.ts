@@ -16,26 +16,29 @@ export const transformationSteps: TransformationSteps[] = [
 ]
 
 export function useTransform(imageId: string) {
-    const [chain, setChain] = useState<Image[]>([])
-    const [currentIndex, setCurrentIndex] = useState(0)
+    // The image this editing session is anchored to. Loaded once, never
+    // swapped out — every transformation targets this, always.
+    const [image, setImage] = useState<Image | null>(null)
+
+    // The most recent transform result, shown alongside `image`. Re-applying
+    // a transform overwrites this — it never becomes the new base.
+    const [transformed, setTransformed] = useState<Image | null>(null)
+
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [activeStep, setActiveStep] = useState<TransformationSteps>(transformationSteps[0])
 
-    // Transform values queued across all steps, sent together on Apply.
     const [pending, setPending] = useState<TransformPayload>({})
     const [applying, setApplying] = useState(false)
     const [applyError, setApplyError] = useState<string | null>(null)
-
-    const image = chain[currentIndex] ?? null
 
     const fetchImageById = useCallback(async () => {
         try {
             setLoading(true)
             setError(null)
             const res = await getImageById(imageId)
-            setChain([res])
-            setCurrentIndex(0)
+            setImage(res)
+            setTransformed(null)
         } catch (err) {
             setError(err instanceof Error ? err.message : String(err))
         } finally {
@@ -47,47 +50,12 @@ export function useTransform(imageId: string) {
         fetchImageById()
     }, [fetchImageById])
 
-    const goBefore = useCallback(async () => {
-        const current = chain[currentIndex]
-        if (!current?.parentImage) return
-
-        if (currentIndex > 0) {
-            setCurrentIndex(i => i - 1)
-            return
-        }
-
-        try {
-            setLoading(true)
-            setError(null)
-            const parent = await getImageById(current.parentImage)
-            setChain(prev => [parent, ...prev])
-            setCurrentIndex(0)
-        } catch (err) {
-            setError(err instanceof Error ? err.message : String(err))
-        } finally {
-            setLoading(false)
-        }
-    }, [chain, currentIndex])
-
-    const goAfter = useCallback(() => {
-        setCurrentIndex(i => (i < chain.length - 1 ? i + 1 : i))
-    }, [chain.length])
-
-    const pushTransformedImage = useCallback((newImage: Image) => {
-        setChain(prev => [...prev.slice(0, currentIndex + 1), newImage])
-        setCurrentIndex(i => i + 1)
-    }, [currentIndex])
-
-    // Merge one field of the pending payload. Generic keeps callers type-safe:
-    // updatePending('rotate', 90) and updatePending('watermark', {...}) both check out.
     const updatePending = useCallback(<K extends keyof TransformPayload>(
         key: K,
         value: TransformPayload[K]
     ) => {
         setPending(prev => {
             if (value === undefined) {
-                // Drop the key entirely rather than keeping it set to undefined,
-                // so hasPendingChanges (and the sidebar's per-step dot) stay accurate.
                 const { [key]: _omit, ...rest } = prev
                 return rest
             }
@@ -105,27 +73,24 @@ export function useTransform(imageId: string) {
         try {
             setApplying(true)
             setApplyError(null)
+            // Always transform the fixed base image, never `transformed` —
+            // this is what makes re-transforming always start from the
+            // original instead of stacking onto a previous edit.
             const result = await transformImage(image._id, pending)
-            pushTransformedImage(result)
+            setTransformed(result)
             clearPending()
         } catch (err) {
             setApplyError(err instanceof Error ? err.message : String(err))
         } finally {
             setApplying(false)
         }
-    }, [image, pending, hasPendingChanges, pushTransformedImage, clearPending])
-
-    const canGoBefore = !!image?.parentImage
-    const canGoAfter = currentIndex < chain.length - 1
+    }, [image, pending, hasPendingChanges, clearPending])
 
     return {
         image,
+        transformed,
         error,
         loading,
-        canGoBefore,
-        canGoAfter,
-        goBefore,
-        goAfter,
 
         transformationSteps,
         activeStep,

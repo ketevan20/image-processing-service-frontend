@@ -19,11 +19,11 @@ const FiltersSection = ({ setFilter, filter, total }: FiltersSectionProps) => {
         <p className="text-xs uppercase tracking-[0.2em] text-gray-500 mt-1">{total} images</p>
       </div>
 
-      <div className="flex items-center gap-1 border border-white/10 p-1">
+      <div className="flex items-center flex-wrap gap-2 md:gap-1 md:border md:border-white/10 p-1">
         {filters.map((label, i) => (
           <button
             key={label}
-            className={`px-4 py-2 text-xs uppercase tracking-[0.2em] transition-colors ${filter === label ? tabColors[i] : 'text-gray-400 hover:text-white'
+            className={`px-4 py-2 text-xs uppercase tracking-[0.2em] transition-colors max-md:border max-md:border-white/10 ${filter === label ? tabColors[i] : 'text-gray-400 hover:text-white'
               }`}
             onClick={() => {setFilter(label)}}
           >
