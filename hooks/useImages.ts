@@ -15,7 +15,7 @@ export function useImages() {
   const [totalPages, setTotalPages] = useState(0)
 
   const [loading, setLoading] = useState(true)
-  const [deletingId, setDeletingId] = useState<string | null>(null) 
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
 
@@ -59,12 +59,12 @@ export function useImages() {
 
   const deleteImage = async (id: string) => {
     try {
-      setDeletingId(id)   
+      setDeletingId(id)
       setError(null)
 
       await deleteImageById(id)
 
-      await fetchImages() 
+      await fetchImages()
     } catch (error) {
       setError(
         error instanceof Error
@@ -72,7 +72,7 @@ export function useImages() {
           : 'Failed to delete image'
       )
     } finally {
-      setDeletingId(null) 
+      setDeletingId(null)
     }
   }
 
@@ -88,7 +88,7 @@ export function useImages() {
       setError(
         error instanceof Error
           ? error.message
-          : 'Failed to delete image'
+          : 'Failed to upload image'
       )
     } finally {
       setLoading(false)
@@ -103,7 +103,7 @@ export function useImages() {
   return {
     images,
     loading,
-    deletingId,   
+    deletingId,
     error,
 
     filter,

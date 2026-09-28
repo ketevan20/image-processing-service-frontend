@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from 'next/navigation'
 import { User, LogOut } from 'lucide-react'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState, useCallback } from 'react'
 
 const Header = () => {
   const pathname = usePathname()
@@ -14,9 +14,10 @@ const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
+  const checkAuth = useCallback(() => {
     let cancelled = false
-    fetch('/api/me')
+    setLoading(true)
+    fetch('/api/me', { cache: 'no-store' })
       .then((res) => (res.ok ? res.json() : { user: null }))
       .then((data) => {
         if (!cancelled) setUsername(data.user?.username ?? null)
@@ -27,7 +28,21 @@ const Header = () => {
     return () => {
       cancelled = true
     }
-  }, [pathname])
+  }, [])
+
+  useEffect(() => {
+    return checkAuth()
+  }, [pathname, checkAuth])
+
+  // Re-check auth when the page is restored from bfcache (browser back/forward),
+  // since that skips normal React effect re-runs and can leave stale auth state visible.
+  useEffect(() => {
+    const handlePageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) checkAuth()
+    }
+    window.addEventListener('pageshow', handlePageShow)
+    return () => window.removeEventListener('pageshow', handlePageShow)
+  }, [checkAuth])
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
