@@ -22,7 +22,11 @@ const EditingOverview = ({ image, transformed, pending }: EditingOverviewProps) 
             const blobUrl = URL.createObjectURL(blob)
             const a = document.createElement('a')
             a.href = blobUrl
-            a.download = img.originalName || 'image'
+
+            const ext = img.mimeType?.split('/')[1] ?? 'jpg'
+            const baseName = (img.originalName || 'image').replace(/\.[^.]+$/, '')
+            a.download = `${baseName}.${ext}`
+
             document.body.appendChild(a)
             a.click()
             a.remove()
@@ -89,7 +93,7 @@ const EditingOverview = ({ image, transformed, pending }: EditingOverviewProps) 
                     <span
                         className='text-white/40 flex items-center gap-1.5  py-1 border border-transparent text-[11px] shrink-0'
                     >
-                        <span className='w-1.5 h-1.5 shrink-0'/>
+                        <span className='w-1.5 h-1.5 shrink-0' />
                         No Changes quoued
                     </span>
 
