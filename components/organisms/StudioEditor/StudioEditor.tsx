@@ -23,7 +23,7 @@ const StudioEditor = () => {
     return (
         <div className='text-white flex flex-col lg:flex-row md:h-[calc(100vh-64px)] overflow-y-auto lg:overflow-hidden'>
             <TrnasformationsList active={activeStep} setActive={setActiveStep} pending={pending} />
-            <EditingOverview image={image} transformed={transformed} pending={pending} />
+            <EditingOverview image={image} transformed={transformed} pending={pending} cropActive={activeStep.key === 'crop'} onCropChange={(crop) => updatePending('crop', crop)}/>
             <TransformationPanel
                 active={activeStep}
                 pending={pending}

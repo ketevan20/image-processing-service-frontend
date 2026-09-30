@@ -4,14 +4,18 @@ import { Image } from '@/types/image'
 import { TransformPayload } from '@/types/transform'
 import { Download } from 'lucide-react'
 import React from 'react'
+import CropOverlay from '../CropOverlay/CropOverlay'
 
 type EditingOverviewProps = {
     image: Image | null
     transformed: Image | null
     pending: TransformPayload
+    cropActive: boolean
+    onCropChange: (crop: TransformPayload['crop']) => void
 }
 
-const EditingOverview = ({ image, transformed, pending }: EditingOverviewProps) => {
+const EditingOverview = ({ image, transformed, pending, cropActive, onCropChange }: EditingOverviewProps) => {
+    const [imgEl, setImgEl] = React.useState<HTMLImageElement | null>(null)
     const activeSteps = transformationSteps.filter((step) => isStepSet(step.key, pending))
 
     const download = async (img: Image) => {
@@ -36,7 +40,7 @@ const EditingOverview = ({ image, transformed, pending }: EditingOverviewProps) 
         }
     }
 
-    const Slot = ({ label, img }: { label: string; img: Image | null }) => (
+    const Slot = ({ label, img, isOriginal }: { label: string; img: Image | null; isOriginal?: boolean }) => (
         <div className='flex-1 min-w-0 min-h-0 flex flex-col'>
             <div className='flex items-center justify-between px-3 py-2 shrink-0'>
                 <p className='text-[11px] uppercase tracking-widest text-white/40'>{label}</p>
@@ -68,11 +72,18 @@ const EditingOverview = ({ image, transformed, pending }: EditingOverviewProps) 
                 }}
             >
                 {img ? (
-                    <img
-                        src={img.url}
-                        alt={img.originalName}
-                        className='max-w-[85%] max-h-[85%] object-contain shadow-2xl shadow-black/60 border border-white/10'
-                    />
+                    <>
+                        <img
+                            ref={isOriginal ? setImgEl : undefined}
+                            draggable={false}
+                            src={img.url}
+                            alt={img.originalName}
+                            className='max-w-[85%] max-h-[85%] object-contain shadow-2xl shadow-black/60 border border-white/10'
+                        />
+                        {isOriginal && cropActive && imgEl && (
+                            <CropOverlay imgEl={imgEl} value={pending.crop} onCommit={onCropChange} />
+                        )}
+                    </>
                 ) : (
                     <p className='text-white/20 text-sm p-4'>No changes applied yet</p>
                 )}
@@ -83,8 +94,8 @@ const EditingOverview = ({ image, transformed, pending }: EditingOverviewProps) 
     return (
         <div className='flex-1 min-h-0 max-h-full flex flex-col min-w-0'>
             <div className='flex-1 min-h-0 flex flex-col sm:flex-row divide-y sm:divide-y-0 sm:divide-x divide-white/10 overflow-y-auto sm:overflow-visible'>
-                <Slot label='Original' img={image} />
-                <Slot label='Edited' img={transformed} />
+                {Slot({ label: 'Original', img: image, isOriginal: true })}
+                {Slot({ label: 'Edited', img: transformed })}
             </div>
 
             <div className='flex items-center gap-2 border-t border-white/10 px-4 py-3 overflow-x-auto scrollbar-none shrink-0'>
