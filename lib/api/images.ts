@@ -96,3 +96,18 @@ export async function transformImage(id: string, payload: TransformPayload): Pro
 
     return res.json()
 }
+
+export async function bulkDeleteImages(imageIds: string[]) {
+    const res = await fetch('/api/images/bulk', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageIds }),
+    })
+
+    if (!res.ok) {
+        const data = await res.json().catch(() => null)
+        throw new Error(data?.message || 'Failed to delete images')
+    }
+
+    return res.json()
+}

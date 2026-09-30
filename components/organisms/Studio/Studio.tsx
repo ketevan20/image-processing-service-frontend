@@ -8,7 +8,7 @@ import { AlertCircle } from 'lucide-react'
 import React from 'react'
 
 const Studio = () => {
-  const { images, loading, error, deletingId, filter, setFilter, page, setPage, limit, total, totalPages, deleteImage, addImage } = useImages()
+  const { images, loading, error, deletingId, filter, setFilter, page, setPage, limit, total, totalPages, deleteImage, addImage, bulkDelete, bulkDeleting } = useImages()
 
 
   return (
@@ -22,7 +22,7 @@ const Studio = () => {
 
       <FiltersSection setFilter={setFilter} filter={filter} total={total}/>
       <UploadSection uploadImage={addImage}/>
-      <GallerySection deletingId={deletingId} loading={loading} images={images} filter={filter} deleteImage={deleteImage}/>
+      <GallerySection deletingId={deletingId} loading={loading} images={images} filter={filter} deleteImage={deleteImage} bulkDelete={bulkDelete} bulkDeleting={bulkDeleting}/>
       <PaginationSection page={page} totalPages={totalPages} setPage={setPage} />
     </div>
   )

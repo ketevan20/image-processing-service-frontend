@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { deleteImageById, getImages, getOriginalImages, getTransformedImages, uploadImage, } from '@/lib/api/images'
+import { bulkDeleteImages, deleteImageById, getImages, getOriginalImages, getTransformedImages, uploadImage, } from '@/lib/api/images'
 import type { Image, ImagesResponse } from '@/types/image'
 
 export type ImageFilter = 'all' | 'originals' | 'transformed'
@@ -16,6 +16,7 @@ export function useImages() {
 
   const [loading, setLoading] = useState(true)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [bulkDeleting, setBulkDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
 
@@ -76,6 +77,29 @@ export function useImages() {
     }
   }
 
+  const bulkDelete = async (ids: string[]): Promise<boolean> => {
+    try {
+      setBulkDeleting(true)
+      setError(null)
+
+      await bulkDeleteImages(ids)
+
+      if (page > 1 && ids.length >= images.length) {
+        setPage(page - 1)
+      } else {
+        await fetchImages()
+      }
+      return true
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : 'Failed to delete images'
+      )
+      return false
+    } finally {
+      setBulkDeleting(false)
+    }
+  }
+
   const addImage = async (image: File) => {
     try {
       setLoading(true)
@@ -117,6 +141,9 @@ export function useImages() {
     totalPages,
 
     deleteImage,
+    
+    bulkDelete,
+    bulkDeleting,
 
     addImage
   }
